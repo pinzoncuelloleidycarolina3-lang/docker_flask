@@ -1,0 +1,47 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-lina
+    ports:
+      - "80:80"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf 
+    depends_on:
+      - backend
+    networks:
+      - red_pinzon
+
+  base_datos:
+    image: mysql:8.0
+    container_name: mysql-lina
+    environment: 
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - datos_mysql:/var/lib/mysql
+    networks:
+      - red_pinzon
+  
+  backend:
+    build: .
+    container_name: backend_lina
+    volumes: 
+      - .:/home/myapp
+    environment:
+      FLASK_ENV: development
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    networks:
+      - red_pinzon
+    depends_on:
+      - base_datos
+    ports:
+    - "5051:5050"
+
+networks:
+  red_pinzon:
+    name: red_pinzon
+
+volumes:
+  datos_mysql:
+    name: datos_mysql
