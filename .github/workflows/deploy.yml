@@ -34,15 +34,15 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
 
             # Despliega en el servidor cloud
-      - name: Desplegar en servidor cloud
-        uses: appleboy/ssh-action@v0.1.3
+        -name: Desplegar en servidor cloud
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          debug: true
           script: |
-            cd /ruta/del/proyecto
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
+            cd /home/ubuntu/docker_flask
+            git pull
+            docker compose down
+            docker compose pull
+            docker compose up -d --build
