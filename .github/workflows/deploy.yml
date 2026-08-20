@@ -1,4 +1,4 @@
-name: Publicar Imagen en Docker Hub
+name: CI/CD Pipeline - Test y Despliegue
 
 on:
   push:
@@ -6,26 +6,52 @@ on:
       - master
 
 jobs:
+  
+  # JOB 1: PRUEBAS 
+
   test:
+    name: Ejecutar Pruebas
     runs-on: ubuntu-latest
 
     steps:
-      # Descarga el código del repositorio
       - name: Descargar código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Configura Docker Buildx
-      - name: Configurar python
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Ejecutar pruebas
+        run: pytest test_app.py -v
+
+  
+  # JOB 2: BUILD Y DEPLOY
+  
+  build-and-deploy:
+    name: Construir y Desplegar
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Inicia sesión en Docker Hub
       - name: Iniciar sesión en Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Construye y publica la imagen
       - name: Construir y publicar imagen
         uses: docker/build-push-action@v6
         with:
@@ -33,8 +59,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
 
-            # Despliega en el servidor cloud
-        -name: Desplegar en servidor cloud
+      - name: Desplegar en servidor cloud
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
