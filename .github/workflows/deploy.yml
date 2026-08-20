@@ -6,16 +6,16 @@ on:
       - master
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
 
     steps:
       # Descarga el código del repositorio
       - name: Descargar código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       # Configura Docker Buildx
-      - name: Configurar Docker Buildx
+      - name: Configurar python
         uses: docker/setup-buildx-action@v3
 
       # Inicia sesión en Docker Hub
@@ -33,14 +33,16 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
 
-      # Despliega en el servidor cloud
+            # Despliega en el servidor cloud
       - name: Desplegar en servidor cloud
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          debug: true
           script: |
-            cd /Docker-Flask-main
-            docker-compose pull app-backend
+            cd /ruta/del/proyecto
+            docker-compose down
+            docker-compose pull
             docker-compose up -d
