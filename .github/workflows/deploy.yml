@@ -6,8 +6,8 @@ on:
       - master
 
 jobs:
-  
-  # JOB 1: PRUEBAS 
+
+  # JOB 1: PRUEBAS Y SEGURIDAD DE CÓDIGO
 
   test:
     name: Ejecutar Pruebas
@@ -25,15 +25,17 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest bandit
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Escaneo de seguridad (bandit)
+        run: bandit -r . -x ./venv -s B101
 
       - name: Ejecutar pruebas
         run: pytest test_app.py -v
 
-  
-  # JOB 2: BUILD Y DEPLOY
-  
+  # JOB 2: BUILD, ESCANEO DE IMAGEN Y DEPLOY
+
   build-and-deploy:
     name: Construir y Desplegar
     needs: test
@@ -52,12 +54,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Construir y publicar imagen
+      - name: Construir imagen (sin publicar aún)
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: false
+          load: true
           tags: ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
+
+      - name: Escanear imagen con Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Publicar imagen en Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
 
       - name: Desplegar en servidor cloud
         uses: appleboy/ssh-action@v1.0.0

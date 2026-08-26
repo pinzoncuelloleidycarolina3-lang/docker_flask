@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template
 import pymysql
 
@@ -10,16 +11,16 @@ def home():
         conn = pymysql.connect(
             host="base_datos",
             user="root",
-            password="Adso2026",
+            password=os.environ.get("DB_PASSWORD", ""),
             database="bd_lina",
             connect_timeout=3
-		)
+        )
         conn.close()
-        db_status= "Conexion exitosa a la BD!"
+        db_status = "Conexion exitosa a la BD!"
     except Exception as e:
         db_status = f"Error en la conexion: {e}"
 
     return render_template("index.html", db_status=db_status)
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5050, debug=True)
+    app.run(host="0.0.0.0", port=5050, debug=False)  # nosec B104
