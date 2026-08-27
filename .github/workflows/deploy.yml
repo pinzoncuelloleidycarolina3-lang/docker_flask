@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - feature/vulnerabilidades
 
 jobs:
 
@@ -67,7 +68,7 @@ jobs:
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/proyecto689:latest
           format: 'table'
-          exit-code: '0'
+          exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
