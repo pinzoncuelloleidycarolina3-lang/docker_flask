@@ -90,3 +90,8 @@ jobs:
             docker builder prune -a -f
             docker compose pull
             docker compose up -d --build --remove-orphans
+
+            echo "===== LOGS PROXY MANAGER ====="
+            docker logs proxy-manager --tail 50
+            echo "===== ESTADO CONTENEDORES ====="
+            docker ps -a
